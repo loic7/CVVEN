@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white px-lg-3 py-lg-2 shadow-sm sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand me-5 fw-bold fs-3 h-font" href="/">CVVEN</a>
+        <a class="navbar-brand me-5 fw-bold fs-3 h-font" href="/">CVVEN MKSL</a>
         <button class="navbar-toggler shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -13,7 +13,7 @@
                     <a class="nav-link me-2" href="/logement/">Logement</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link me-2" href="/">Matériel</a>
+                    <a class="nav-link me-2" href="/materiel/">Matériel</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link me-2" href="/">Salle de colloque</a>
@@ -32,7 +32,7 @@
                 $isLoggedIn = $userSession && array_key_exists('isLoggedIn', $userSession) && $userSession['isLoggedIn'];
                 if ($isLoggedIn): ?>
                     <span class="navbar-text me-3">
-                        Bonjour, <?= $userSession['nom'] ?>
+                        Bonjour, <?= $userSession['prenom'] ?>
                     </span>
                     <?php if ($isAdmin): ?>
                         <a href="<?= site_url('admin/dashboard'); ?>" class="btn btn-info me-2">Admin Panel</a>

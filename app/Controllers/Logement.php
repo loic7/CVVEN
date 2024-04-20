@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\LogementModel;
+use App\Models\ReservationModel;
+use App\Models\ReservationLogementModel;
 
 class Logement extends BaseController
 {
@@ -10,8 +12,9 @@ class Logement extends BaseController
     protected $navbar;
     protected $footer;
 
-    protected $logementData;
-    protected $data;
+    protected $logementModel;
+    protected $reservationModel;
+    protected $reservationLogementModel;
 
     public function __construct()
     {
@@ -19,8 +22,10 @@ class Logement extends BaseController
         $this->navbar = view('components/navbar');
         $this->footer = view('template/footer');
 
-        // Charger les données de la table logement
+        // Charger les modèles
         $this->logementModel = new LogementModel();
+        $this->reservationModel = new ReservationModel();
+        $this->reservationLogementModel = new ReservationLogementModel();
     }
 
     public function view(): string
@@ -102,20 +107,66 @@ class Logement extends BaseController
         return $this->header . $this->navbar . $type5 . $this->footer;
     }
 
-    public function getLogement($id): string
+    public function getLogement($id)
     {
-        // Récupérer les détails du logement avec l'ID donné
         $logement = $this->logementModel->getLogementById($id);
 
-        // Vérifier si le logement existe
         if ($logement) {
             // Vérifier si le formulaire a été soumis
             if ($this->request->getMethod() === 'post') {
+
+                // Ajouter des règles de validation
+                $rules = [
+                    'start_date' => 'required|valid_date',
+                    'end_date' => 'required|valid_date',
+                    'nbr_personne' => 'required|max_length[1]'
+                ];
+
+                // Vérifier si les règles de validation sont respectées
+                if (!$this->validate($rules)) {
+                    // Si les règles de validation ne sont pas respectées, afficher à nouveau la vue du formulaire avec les erreurs de validation
+                    $data['logement'] = $logement;
+                    $data['validation'] = $this->validator; // Passer les erreurs de validation à la vue
+                    return $this->header . $this->navbar . view('pages/logement/form', $data) . $this->footer;
+                }
+
                 // Traitement des données du formulaire de réservation
                 $formData = $this->request->getPost();
-                // Insérez le code pour valider et enregistrer les données de réservation dans la base de données
-                // Rediriger l'utilisateur vers une page de confirmation ou une autre page appropriée
-                return redirect()->to('/confirmation');
+
+                // Calculer le prix total
+                $startDate = strtotime($formData['start_date']);
+                $endDate = strtotime($formData['end_date']);
+                $diffDays = ceil(($endDate - $startDate) / (60 * 60 * 24));
+                $totalPrice = $diffDays * $logement["prix"];
+
+                $userSession = session()->get('user');
+
+                // Insérer les données dans la table de réservation
+                $reservationData = [
+                    'dateDebut' => date('Y-m-d', $startDate),
+                    'dateFin' => date('Y-m-d', $endDate),
+                    'nbrPersonne' => $formData['nbr_personne'],
+                    'prix' => $totalPrice,
+                    'userId' => $userSession['id']
+                ];
+
+                $this->reservationModel->insert($reservationData);
+
+                // $reservation = $this->reservationModel->getLogementById($id);
+
+                // $reservationLogementData = [
+                //     'logementId' => $logement["id"],
+                //     'reservationId' => $reservation['id']
+                // ];
+                // var_dump($reservationData);
+
+                // $this->reservationLogementModel->insert($reservationLogementData);
+
+                // Mettre à jour la colonne reserver de la table logement à true
+                $this->logementModel->update($id, ['reserver' => 1]);
+
+                // Rediriger l'utilisateur vers une page de confirmation
+                return redirect()->to('/logement');
             } else {
                 // Passer les données du logement à la vue
                 $data['logement'] = $logement;
