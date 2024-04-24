@@ -15,8 +15,9 @@ class ReservationMaterielModel extends Model
     protected $allowedFields    = [
         'dateDebut',
         'dateFin',
-        'materielID',
-        'userId'
+        'materiel_id',
+        'user_id',
+        'status'
     ];
 
     protected bool $allowEmptyInserts = false;
